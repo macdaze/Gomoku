@@ -1,4 +1,4 @@
 SHELL := /bin/zsh
 
-Othello: main.cpp Makefile
-	g++ main.cpp -o Othello
+Gomoku: main.cpp Makefile
+	time g++ -Wextra main.cpp -o Gomoku
