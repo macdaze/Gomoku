@@ -38,7 +38,7 @@ void draw_game_board(State game_board[19][19], State turn) {
                    break;
            }
        }
-        switch (game_board[y][19]) {        // XXX なぜか座標jjだけ、初期状態でも白石が置かれてる　なんで〜？
+        switch (game_board[y][19]) {        // XXX なぜか座標jjだけ、初期状態でなんの意思も置かれてない　なんで〜？
            case State::blank:
                 cout << "+" <<endl;
                 break;
@@ -233,11 +233,15 @@ board_vector wait_user_move(State game_board[19][19], State turn) {
 
     switch (turn) {
         case State::white:
-            game_board[y_coordinate - 1][x_coordinate] = State::white;
+            if (game_board[y_coordinate - 1][x_coordinate] == State::blank) {
+                game_board[y_coordinate - 1][x_coordinate] = State::white;
+            }
             break;
 
         case State::black:
-            game_board[y_coordinate - 1][x_coordinate] = State::black;
+            if (game_board[y_coordinate - 1][x_coordinate] == State::blank) {
+                game_board[y_coordinate - 1][x_coordinate] = State::black;
+            }
             break;
     }
 
@@ -246,6 +250,129 @@ board_vector wait_user_move(State game_board[19][19], State turn) {
     last_move.y = y_coordinate;
 
     return last_move;
+}
+
+
+State check_winner(State game_board[19][19], State turn, board_vector last_move) {
+    State search_winner = State::blank;
+
+    if (turn == State::white) {
+        int consecutive_stones = 0;
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y - j + i][last_move.x - j + i] == State::white) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::white;
+                consecutive_stones = 0;
+                break;
+            }
+            consecutive_stones = 0;
+        }
+
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y - j + i][last_move.x] == State::white) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::white;
+                consecutive_stones = 0;
+                break;
+            }
+            consecutive_stones = 0;
+        }
+
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y + j - i][last_move.x + j - i] == State::white) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::white;
+                consecutive_stones = 0;
+                break;
+            }
+            consecutive_stones = 0;
+        }
+
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y][last_move.x + j - i] == State::white) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::white;
+                consecutive_stones = 0;
+            }
+            consecutive_stones = 0;
+        }
+
+    } else if (turn == State::black) {
+
+        int consecutive_stones = 0;
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y - j + i][last_move.x - j + i] == State::black) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::black;
+                consecutive_stones = 0;
+                break;
+            }
+            consecutive_stones = 0;
+        }
+
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y - j + i][last_move.x] == State::black) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::black;
+                consecutive_stones = 0;
+                break;
+            }
+            consecutive_stones = 0;
+        }
+
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y + j - i][last_move.x + j - i] == State::black) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::black;
+                consecutive_stones = 0;
+                break;
+            }
+            consecutive_stones = 0;
+        }
+
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+                if (game_board[last_move.y][last_move.x + j - i] == State::black) {
+                    ++consecutive_stones;
+                }
+            }
+            if (consecutive_stones == 5) {
+                search_winner = State::black;
+                consecutive_stones = 0;
+            }
+            consecutive_stones = 0;
+        }
+    }
+
+    return search_winner;
 }
 
 
@@ -265,11 +392,11 @@ int main() {
     while (winner == State::blank) {
         board_vector last_move = wait_user_move(game_board, turn);
 
-        check_winner(game_board, turn, last_move);
+        winner = check_winner(game_board, turn, last_move);
 
         draw_game_board(game_board, turn);
 
-        switch (turn) {
+        switch (turn) {                     // XXX なーぜか最初だけBlack turnが連続して出てしまう
             case State::white:
                 turn = State::black;
                 break;
@@ -278,5 +405,23 @@ int main() {
                 turn = State::white;
                 break;
         }
+
     }
+     if (winner == State::white) {
+            cout << endl << endl;
+            cout << R"(__        ___     _ _        __        ___       _)" << endl;
+            cout << R"(\ \      / / |__ (_) |_ ___  \ \      / (_)_ __ | |)" << endl;
+            cout << R"( \ \ /\ / /| '_ \| | __/ _ \  \ \ /\ / /| | '_ \| |)" << endl;
+            cout << R"(  \ V  V / | | | | | ||  __/   \ V  V / | | | | |_|)" << endl;
+            cout << R"(   \_/\_/  |_| |_|_|\__\___|    \_/\_/  |_|_| |_(_))" << endl;
+            cout << endl << endl;
+        } else if (winner == State::black) {
+            cout << endl << endl;
+            cout << R"( ____  _            _     __        ___       _)" << endl;
+            cout << R"(| __ )| | __ _  ___| | __ \ \      / (_)_ __ | |)" << endl;
+            cout << R"(|  _ \| |/ _` |/ __| |/ /  \ \ /\ / /| | '_ \| |)" << endl;
+            cout << R"(| |_) | | (_| | (__|   <    \ V  V / | | | | |_|)" << endl;
+            cout << R"(|____/|_|\__,_|\___|_|\_\    \_/\_/  |_|_| |_(_)" << endl;
+            cout << endl << endl;
+        }
 }
