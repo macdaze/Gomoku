@@ -1,4 +1,13 @@
 SHELL := /bin/zsh
 
 Gomoku: main.cpp Makefile
-	time g++ -Wextra main.cpp -o Gomoku
+	time clang++ -Wextra main.cpp -o Gomoku
+
+.PHONY: run
+run: Gomoku
+	./Gomoku
+
+.PHONY: debug
+debug:
+	lldb Gomoku
+
